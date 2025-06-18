@@ -1,0 +1,277 @@
+tell about yourself 
+****************
+
+1. dont be fast , dont be tensed , be cool .. talk slowly
+2. dont disclose any table and package info of your project
+
+hi .. currently i am working in cognizant , having 2+ years of experience in banking and telecom domain. 
+
+good knowledge in pt. i ve good hands on experience in plsql concepts like proc / fun / triggers / packages ...  i am quick leaner .. positive .. 
+
+i am looking for career growth since i am part of this current company for 2+ yrs.
+
+recently created procedure ?
+recently faced issue ?  your contribution ?
+performace tuning ?
+where you created trigger in your project ?
+why ? packages ?
+why cursor ?
+
+
+recently created procedure ?
+
+1.since i am working in sup / dev project - already there will be so many proc
+   i will modifying it based on my requirement.
+  
+   recent - i did changes in trans_track procedure for china and honkong
+                 prviously the calculation was .25 now i ve changed into .32
+
+      if  ctry_code  = 'in'  =>  if ctry_code in ('in','cn','hk') then
+       int_cal := 0.32                  int_cal := 0.32
+
+2. for validation purpose i ve create a procedure
+
+eg /  user input  should not be same - to avoid that 
+
+3. script preparation - coding 
+i will be getting mails from product owner.
+i will be collecting source which is for the deployment of the week
+
+every project will be having 4 environments
+
+1.dev     2.tesing    3.staging     4.production (live)
+
+4. country wise data update
+
+based on the application (down stream )  output the procedure will react
+
+eg =>  user initiating 50000 rs from hk then we have certain validations 
+           the respective proc should validate
+
+recently faced issue ?  your contribution ?
+
+1. buffer overflow issues  - character string buffer too small
+    solution - we have changed all the datatypes into %type
+
+2. index - unusable status - so query latency happend
+    solution - alter index idx rebuild;
+
+3. changing - implicit cursor to explicit cursor to avoid no data found error
+    situation  - if the select query not having data then we face issue
+
+4. if the variable frequently used then we can create and declare it in package spec
+
+5.  while moving data from one table to diff table we faced issue - it took long time
+     i have used limit and by looping it that concept - it made it better than previous 
+
+6. sub query to joins  => taking the screenshot before and after ( cost to be checked)
+
+7. how to get explain plan
+
+explain plan for select t1.id , t.name from t1,t2 where t1.id = t2.id;
+select dbms_xplan.display from dual;
+
+shortcut =>  toad => ctrl+e
+                   sqlplus => set autot on
+
+8. views  =>  created complex views to hide the complex logic
+
+Performance tuning
+*****************
+
+I ve good understanding of pt concepts. i ve hands on experience in pt like to generate awr report , sql query tuning , explain plan analysis . i ve been part of pt team for last 3 4 months. i got the clear understanding of application flow.
+
+we recently faced an issue of 
+application latency
+blank report
+query slowness
+memory usage full
+
+for application latency , our dba will be sending the awr reprt to us and i will analyze the report based on the check list given to us. we have standard process to follow for pt, whether we can go for joins instead of sub query , null functions to be replaced by case or decode to be replaced by case .. etc
+
+i will check the explain plan for the query first with screenshot,  then i will analyze which scans have been done by optimizer whether index has been read (if index there), or index required , hints to be forced , sub query to be replaced ... if i found any cost decrease then i will force hint or iniating index .. or gathering table statics
+
+we faced more application slowness (particular page will be blank at specific point of time ) issues.  for that we will be doing 
+
+exec dbms_stats.gather_table_stats('hr','employees');
+
+after running this .. index may go for unusable status so we have to check the index status in user_indexes. if it is in unusable status then
+
+alter index index_name rebuild online; ( if production time issue ) or   
+alter index index_name rebuild;
+
+i have some knowledge of analysing awr report
+
+select * from dba_hist_snapshot;  
+
+first of all we need to get the application slowness issue timings from  L1 people
+based on that i will be checking in the respective database to get the snap start id , snap end id , db id , instance number to generate awr report.
+
+using  select * from 
+table(dbms_workload_repository.awr_report_html(dbid,insnumber,snapsid,snapeid));
+
+i will check top 10 fore ground events and then i can easily identify the query which took more time to execute. if the cost of the query says 100% above then i will tune the query... 
+
+table partitioning
+awr report
+index
+hints
+bind variable
+avoidance of null functions
+use case instead of decode
+collections / bulk collect .. 
+
+where the trigger created in your project
+
+we have existing triggers for all the transaction tables.
+
+any update happend in header table we have triggers to track - mainly triggers are for audit and data tracking purpose
+
+eg/:
+
+t1 =>  whenever t1 getting inserted/updated i have to track that in two tables t2 / t3
+
+create or replace trigger itrgu after insert or update on t1 
+declare
+pragma autonomous_transaction;
+begin
+
+if inserting then
+insert into t2(b) values(:new.a);
+
+elsif updating then
+insert into t3(c) values(:old.a);
+end if;
+commit;
+end;
+/
+
+select * from t1;
+
+insert into t1(a) values(2);
+update t1 set a=10 where a=1;
+
+select * from t2;
+select * from t3;
+
+
+**********************************************************************
+
+Write a plsql procedure to validate the name. if there in db then say already exists else you can proceed.?
+
+create or replace procedure val_proc(name in varchar , status out varchar) as
+
+cursor val_cursor is select first_name from employees where first_name= name;
+
+l varchar(20);
+
+cnt number;
+
+begin
+
+open val_cursor;
+
+fetch val_cursor into l;
+
+if val_cursor%found then
+
+status := 'name already exists';
+
+dbms_output.put_line(status);
+
+else
+
+status := 'you can proceed';
+
+dbms_output.put_line(status);
+
+end if;
+
+close val_cursor;
+
+
+
+select count(*) into cnt from employees where first_name = name;
+
+
+
+if cnt <> 0 then
+
+status := 'name already exists';
+
+dbms_output.put_line(status);
+
+else
+
+status := 'you can proceed';
+
+dbms_output.put_line(status);
+
+end if;
+
+
+
+end;
+/
+
+********************************************************************
+Create a trigger to track customer deposits ?
+
+create table t1(a number);
+insert into t1(a)  select level from dual connect by level <= 5;
+create table t2(old_value number, new_value number);
+
+update t1 set a=8 where a=4;
+ 
+create or replace trigger audit_t1 after update on t1
+for each row
+begin
+if  to_char(sysdate,'d') not in (7,1)  then
+insert into t2(old_value,new_value) values( :old.a , :new.a );
+else
+raise_application_error(-20777,'dont deposit on  '||to_char(sysdate,'day') );
+end if;
+end;
+/
+
+*********************************************************************
+
+Table Fragmentation ?
+
+select * from emp;   -- 107 records
+select count(*) from emp;
+select num_rows from user_tables where table_name='EMP';
+delete from emp;  -- 0 records
+check again...
+select count(*) from emp;  -- 0 
+select num_rows from user_tables where table_name='EMP'; -- still 107 
+
+table statistics to be gathered to remove empty blocks from your table , 
+run below command to do so
+
+execute dbms_stats.gather_table_stats('hr','emp');
+		
+		(or)
+begin
+dbms_stats.gather_table_stats('hr','emp');
+end;
+/
+
+select num_rows from user_tables where table_name='EMP'; -- 0 
+
+while this operation index may go for unusable status so we have to check the index status in user_indexes
+
+select * from user_indexes where table_name='EMP';
+
+if it is unusable then :    alter index index_name rebuild;
+if the issue in production  :  alter index index_name rebuild online;
+
+
+
+
+
+
+Trainer
+Karthick Ravichandran
+
+
