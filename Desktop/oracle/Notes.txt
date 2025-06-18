@@ -1,0 +1,779 @@
+SQL
+
+1.DDL,DML,DCL AND TCL
+
+DDL - DATA DEFINITION LANGUAGE
+*******************************
+
+i)CREATE - Creates a new table, view, index, or other object.
+
+CREATE TABLE employees (
+  emp_id NUMBER PRIMARY KEY,
+  emp_name VARCHAR2(100),
+  salary NUMBER
+);
+
+ii)ALTER - Modifies an existing object.
+
+ALTER TABLE employees ADD (department_id NUMBER);
+
+iii)DROP - Deletes an object from the database.
+
+DROP TABLE employees;
+
+iv) RENAME - Renames an object.
+
+Rename employees to emp;
+
+v)TRUNCATE - Removes all rows from a table quickly, without logging individual row deletions.
+
+TRUNCATE TABLE employees;
+
+
+
+DML - DATA MANIPULATION LANGUAGE
+*******************************
+
+i)INSERT - Adds new data.
+
+INSERT INTO emp (emp_id, emp_name, salary, department_id)
+VALUES (1, 'John Doe', 50000, 10);
+
+
+ii)UPDATE - Modifies existing data.
+
+update employees set employee_name = 'Bharathi' where employee_id = '100';
+
+iii)DELETE - Removes data.
+
+delete employees where employee_id = '100';
+
+
+DCL - DATA CONTROL LANGUAGE
+*******************************
+
+i)GRANT - Gives user access privileges.
+
+GRANT SELECT, INSERT ON emp TO hr_user;
+
+ii)REVOKE - Withdraws access privileges.
+
+REVOKE INSERT ON emp FROM hr_user;
+
+
+TCL - TRANSACTIN CONTROL LANGUAGE
+*******************************
+
+i)COMMIT - Saves all changes made by the transaction.
+
+UPDATE emp SET salary = 60000 WHERE emp_id = 1;
+COMMIT;
+
+ii)ROLLBACK - Reverts changes made by the transaction.
+
+UPDATE emp SET salary = 70000 WHERE emp_id = 1;
+ROLLBACK;
+
+iii)SAVEPOINT - Sets a point within a transaction to which you can later roll back.
+
+SAVEPOINT before_update;
+UPDATE emp SET salary = 80000 WHERE emp_id = 1;
+
+ROLLBACK TO before_update;
+-- Undoes the update to salary = 80000, but not anything before the savepoint.
+
+
+2.ALTER STATEMENTS
+*******************************
+
+
+I) ADD COLUMN
+ALTER TABLE employees ADD (email VARCHAR2(100));
+
+II) MODIFY COLUMN 
+ALTER TABLE employees MODIFY (salary NUMBER(10,2));
+
+III) RENAME COLUMN 
+ALTER TABLE employees RENAME COLUMN emp_name TO full_name;
+
+IV) DROP COLUMN 
+ALTER TABLE employees DROP COLUMN email;
+
+V) ADD CONSTRAINTS
+ALTER TABLE emp ADD CONSTRAINT pk_emp PRIMARY KEY (emp_id);
+
+VI) DROP CONSTRAINTS
+ALTER TABLE emp DROP CONSTRAINT fk_dept;
+
+3.CONSTRAINTS
+*******************************
+
+
+i) Primary KEY - Uniquely identifies each row in the table. Combines NOT NULL + UNIQUE.
+
+CREATE TABLE employees (
+  emp_id NUMBER PRIMARY KEY,
+  emp_name VARCHAR2(100)
+);
+ 
+OR
+
+ CREATE TABLE employees (
+  emp_id NUMBER,
+  emp_name VARCHAR2(100),
+  CONSTRAINT emp_pk PRIMARY KEY (emp_id)
+);
+ 
+
+ii) Foreign KEY - Creates a link between two tables; ensures values in one table match values in another.
+
+CREATE TABLE departments (
+  dept_id NUMBER PRIMARY KEY,
+  dept_name VARCHAR2(100)
+);
+
+CREATE TABLE employees (
+  emp_id NUMBER PRIMARY KEY,
+  emp_name VARCHAR2(100),
+  dept_id NUMBER,
+  CONSTRAINT emp_dept_fk FOREIGN KEY (dept_id)
+    REFERENCES departments(dept_id)
+);
+
+
+iii) UNIQUE - Ensures that all values in the column or column group are unique (can contain NULLs)
+
+CREATE TABLE employees (
+  emp_id NUMBER,
+  email VARCHAR2(100) UNIQUE
+);
+
+
+OR 
+
+CREATE TABLE employees (
+  emp_id NUMBER,
+  email VARCHAR2(100),
+  CONSTRAINT emp_email_uk UNIQUE (email)
+);
+
+
+iv) not NULL - Ensures that a column must always have a value (cannot be NULL).
+
+CREATE TABLE employees (
+  emp_id NUMBER,
+  emp_name VARCHAR2(100) NOT NULL
+);
+
+
+v) CHECK -  Ensures that the value in a column meets a specific condition.
+
+CREATE TABLE employees (
+  emp_id NUMBER PRIMARY KEY,
+  emp_name VARCHAR2(100),
+  salary NUMBER,
+  CONSTRAINT chk_salary CHECK (salary > 0)
+);
+
+or
+
+ CREATE TABLE employee (
+  emp_id NUMBER PRIMARY KEY,
+  emp_name VARCHAR2(100),
+  salary NUMBER CHECK (salary > 0)
+);
+
+
+
+4.JOINS
+********
+
+
+i).INNER JOIN - Returns rows that have matching values in both tables.
+
+SELECT e.emp_id, e.emp_name, d.dept_name
+FROM employees e
+JOIN departments d ON e.dept_id = d.dept_id;
+
+
+ii). LEFT JOIN / LEFT OUTER JOIN - Returns all rows from the left table, and the matching rows from the right table. If no match, the right side will contain NULL.
+
+SELECT e.emp_id, e.emp_name, d.dept_name
+FROM employees e
+LEFT JOIN departments d ON e.dept_id = d.dept_id;
+
+
+iii). RIGHT JOIN /RIGHT OUTER JOIN - Returns all rows from the right table, and the matching rows from the left table. If no match, the left side will contain NULL.
+
+SELECT e.emp_id, e.emp_name, d.dept_name
+FROM employees e
+RIGHT JOIN departments d ON e.dept_id = d.dept_id;
+
+
+iv). FULL OUTER JOIN - Returns all rows from both tables. If there is no match, NULL is shown from the side that is missing the match.
+
+SELECT e.emp_id, e.emp_name, d.dept_name
+FROM employees e
+FULL OUTER JOIN departments d ON e.dept_id = d.dept_id;
+
+
+v). CROSS JOIN - Returns the Cartesian product — all combinations of rows from both tables.
+
+SELECT e.emp_name, d.dept_name
+FROM employees e
+CROSS JOIN departments d;
+
+
+vi). SELF JOIN  - A table joins with itself — useful for hierarchical or related data (e.g., employees and their managers).
+
+SELECT e.emp_name AS employee, m.emp_name AS manager
+FROM employees e
+LEFT JOIN employees m ON e.manager_id = m.emp_id;
+
+5.SUB QUERIES
+**************
+
+i) Single row subquery.
+Returns only one row and one column used with operators like =, <, >, <=, >=, <>.
+
+ex: select * from customer_database where branch_id = (select branch_id from customer_database where customer_id = '989275');
+
+ii) Multiple row subquery.
+Returns multiple rows, but only one column used in  operators like IN, ANY, ALL.
+
+ex: select * from customer_database where branch_id in 
+(select distinct branch_id from customer_database where region_name = 'chennai');
+
+iii) Multiple column sub query.
+Returns multiple columns from the inner query.
+
+ex: select * from customer_database where (employee_code ,branch_id) in  
+(select employee_code,branch_id from customer_database where customer_id = '989275');
+
+iv) Correlated Subquery
+Subquery references columns from the outer query executed once for each row of the outer query.
+
+ex: SELECT distinct e1.employee_code, e1.employee_name
+FROM customer_database e1
+WHERE e1.account_balance_on_linking < (
+    SELECT AVG(e2.account_balance_on_linking)
+    FROM customer_database e2
+    WHERE e1.branch_id = e2.branch_id
+);
+
+V) scalar subquery
+Subquery that returns exactly one value (one row, one column).can be used like a column in the SELECT clause.
+
+SELECT e.employee_code,
+       (SELECT distinct b.employee_name
+        FROM customer_database b
+        WHERE b.branch_id = e.branch_id) AS employee_name,e.branch_id
+FROM customer_database e;
+
+vi)Inline view subquery
+Subquery used as a temporary table in the FROM clause.
+
+select * from (select employee_code,branch_id from customer_database);
+
+
+6.Views and Mviews
+******************
+
+It’s a named SQL query stored in the database.when you query a view, Oracle runs the underlying SQL and returns the result.
+It doesn’t store data physically, but provides a way to represent data from one or more tables by using saved query that behaves like a table.
+
+i)Simple View 
+View based on a single table without any group functions.
+
+CREATE VIEW emp_names AS
+SELECT emp_id, name FROM employees;
+
+Restriction methods
+---------------------
+
+with read only 
+create or replace view testv2 as select * from t2 with read only; 
+
+with check option 
+create or replace view testv3 as select * from t2 where b < 5 with check option;
+
+
+ii) Complex view
+Includes joins, group functions, or multiple tables.
+
+CREATE VIEW dept_emp_count AS
+SELECT d.department_id, d.department_name, COUNT(e.emp_id) AS emp_count
+FROM departments d
+JOIN employees e ON d.department_id = e.department_id
+GROUP BY d.department_id, d.department_name;
+
+iii) Materialized View 
+Physically stores data and can be refreshed.
+
+| Option             | Trigger         | Type       | Performance | Needs MV Log?  |
+| -------------------| --------------- | ---------- | ----------- | -------------  |
+| COMPLETE ON DEMAND | Manual          | Full query | Slower      | ❌             |
+| FAST ON COMMIT     | On every commit | Delta only | Faster      | ✅ Required    |
+
+-- refresh complete on DEMAND (manual refresh);
+
+CREATE MATERIALIZED VIEW mv_emp_summary
+BUILD IMMEDIATE
+REFRESH COMPLETE ON DEMAND
+AS
+SELECT department_id, COUNT(*) AS total_employees
+FROM employees
+GROUP BY department_id;
+
+--refresh complete on commit (automatic refresh after commt but need log table);
+-- First, create a log
+CREATE MATERIALIZED VIEW LOG ON orders WITH ROWID, SEQUENCE (customer_id, amount);
+
+-- Then, the MV
+CREATE MATERIALIZED VIEW mv_orders
+REFRESH FAST ON COMMIT
+AS
+SELECT order_id, customer_id, amount
+FROM orders;
+
+
+7.INDEXES
+*********
+
+Index is a database object used to speed up data retrieval.It improves SELECT query performance.
+
+i) B-Tree Index - less duplicates / high cordinality 
+
+ex: CREATE INDEX idx_emp_name ON employees (last_name);
+
+ii) Bitmap Index  - more duplicates / low cordinality 
+
+ex: CREATE BITMAP INDEX idx_emp_gender ON employees (gender);
+
+iii)Unique Index -  non duplicates columns.Created automatically with PRIMARY KEY or UNIQUE constraint.
+
+ex: CREATE UNIQUE INDEX idx_emp_email ON employees (email);
+
+iv) Composite Index - For more than one column.Order of columns matters in queries.
+
+ex: CREATE INDEX idx_emp_dept_job ON employees (department_id, job_id);
+
+v) Function based index - Index on a function or expression result.speeds up queries using the same function.
+
+ex: CREATE INDEX idx_upper_name ON employees (UPPER(last_name));
+
+
+8.ANALYTICAL FUNCTION (PARTITION BY IS NOT MANDATORY)
+**********************************************************
+
+i)RANK() - Rank the rows in numerical order. same rank for ties, but skips next rank.
+SELECT 
+  CUSTOMER_ID,
+  BRANCH_ID,
+  ACCOUNT_BALANCE_ON_LINKING,
+  RANK() OVER 
+  (PARTITION BY BRANCH_ID ORDER BY TO_NUMBER(ACCOUNT_BALANCE_ON_LINKING)
+  ) AS RANK
+FROM CUSTOMER_DATABASE;
+
+ii)DENSE_RANK() - 	Similar to RANK, but doesnt skip ranks after ties.
+SELECT 
+  CUSTOMER_ID,
+  BRANCH_ID,
+  ACCOUNT_BALANCE_ON_LINKING,
+  DENSE_RANK() OVER 
+  (PARTITION BY BRANCH_ID ORDER BY TO_NUMBER(ACCOUNT_BALANCE_ON_LINKING)
+  ) AS DENSE_RANK
+FROM CUSTOMER_DATABASE;
+
+iii)Row_number - Gives a unique number to each row in order.
+SELECT 
+  CUSTOMER_ID,
+  BRANCH_ID,
+  ACCOUNT_BALANCE_ON_LINKING,
+  ROW_NUMBER() OVER 
+  (PARTITION BY BRANCH_ID ORDER BY TO_NUMBER(ACCOUNT_BALANCE_ON_LINKING)
+  ) AS ROW_NUMBER
+FROM CUSTOMER_DATABASE;
+
+iv)Lead - Access next row values in the result
+SELECT 
+  CUSTOMER_ID,
+  BRANCH_ID,
+  ACCOUNT_BALANCE_ON_LINKING,
+  LEAD(ACCOUNT_BALANCE_ON_LINKING) OVER 
+  (PARTITION BY BRANCH_ID ORDER BY TO_NUMBER(ACCOUNT_BALANCE_ON_LINKING)) AS LEAD
+FROM CUSTOMER_DATABASE;
+
+v)Lagg - Access previous row values in the result.
+SELECT 
+  CUSTOMER_ID,
+  BRANCH_ID,
+  ACCOUNT_BALANCE_ON_LINKING,
+  LAG(ACCOUNT_BALANCE_ON_LINKING) OVER 
+  (PARTITION BY BRANCH_ID ORDER BY TO_NUMBER(ACCOUNT_BALANCE_ON_LINKING)) AS LAG
+FROM CUSTOMER_DATABASE ;
+
+vi) Listagg 
+It combines multiple values from multiple rows into one result.
+Without OVER(), it must be used with GROUP BY.
+
+SELECT BRANCH_ID, LISTAGG(CUSTOMER_NAME, ', ') 
+       WITHIN GROUP (ORDER BY CUSTOMER_NAME) AS customers
+FROM CUSTOMER_DATABASE where branch_id = '109'
+GROUP BY BRANCH_ID;
+
+
+9.AGGREGATE/GROUP FUNCTION
+***************************
+
+An aggregate function (also called a group function) performs a calculation on a group of rows and returns one result per GROUP. Commonly used with GROUP BY in SQL.
+
+
+i).MIN - Finds the lowest value
+Ex: SELECT MIN(ACCOUNT_BALANCE) AS min_balance
+FROM CUSTOMER_DATABASE;
+
+SELECT BRANCH_ID,MIN(ACCOUNT_BALANCE) AS min_balance
+FROM CUSTOMER_DATABASE
+GROUP BY BRANCH_ID;
+
+ii).MAX - Finds the Highest value
+Ex: SELECT MAX(ACCOUNT_BALANCE) AS min_balance
+FROM CUSTOMER_DATABASE;
+
+SELECT BRANCH_ID,MAX(ACCOUNT_BALANCE) AS min_balance
+FROM CUSTOMER_DATABASE
+GROUP BY BRANCH_ID;
+
+
+iii).SUM - Add the numeric values.
+SELECT SUM(ACCOUNT_BALANCE) AS total_balance
+FROM CUSTOMER_DATABASE;
+
+SELECT BRANCH_ID, SUM(ACCOUNT_BALANCE) AS branch_total_balance
+FROM CUSTOMER_DATABASE
+GROUP BY BRANCH_ID;
+
+
+iv).AVG - Gives average for the column nueric value.
+EX: SELECT AVG(ACCOUNT_BALANCE) AS avg_balance
+FROM CUSTOMER_DATABASE;
+
+SELECT BRANCH_ID, AVG(ACCOUNT_BALANCE) AS avg_balance_per_branch
+FROM CUSTOMER_DATABASE
+GROUP BY BRANCH_ID;
+
+
+v).COUNT - Count all the data 
+Ex : SELECT COUNT(*) AS total_customers
+FROM CUSTOMER_DATABASE;
+
+SELECT BRANCH_ID, COUNT(CUSTOMER_ID) AS customers_per_branch
+FROM CUSTOMER_DATABASE
+GROUP BY BRANCH_ID;
+
+10.SEQUENCE AND SYNONYMS.
+*******************************
+
+i) SEQUENCE
+A sequence is an Oracle object used to generate unique numbers, often for primary keys.
+
+* Use Cases:
+
+->Auto-incrementing IDs.
+->Generating serial numbers.
+->Ensuring uniqueness across sessions.
+
+* Creating a Sequence
+
+CREATE SEQUENCE emp_seq START WITH 1000 INCREMENT BY 1 NOCACHE NOCYCLE;
+
+ii) SYNONYM
+A synonym is an alias or alternate name for a database object like a table, view, sequence, or procedure.
+
+* Use Cases:
+
+->Hide object owner/schema details.
+->Simplify object access.
+->Useful in distributed database systems.
+
+* Creating a Synonym
+
+CREATE PUBLIC SYNONYM emp FOR hr.employees;
+
+USE SELECT * FROM emp instead of select * from hr.employees;
+
+11.	CHARACTER MANIPULATION.
+***************************
+
+| Function     | Syntax Format                                    | Purpose                      | Example                                                              |
+| -------------| -------------------------------------------------| ---------------------------  | ---------------------------------------------------------------------|
+| 1. INSTR     | INSTR(input, search_str, start_pos, occurrence)  | Finds position of substring  | SELECT first_name, INSTR(first_name, 'a', 1, 2) FROM employees;      |
+| 2. SUBSTR    | SUBSTR(input, start_pos, length)                 | Extracts part of a string    | SELECT last_name, SUBSTR(last_name, 2, 2) FROM employees;            |
+| 3. LENGTH    | LENGTH(input)                                    | Counts characters            | SELECT first_name, LENGTH(first_name) FROM employees;                |
+| 4. REVERSE   | REVERSE(input)                                   | Reverses string              | SELECT REVERSE('oracle') FROM dual; *(or use user-defined function)* |
+| 5. REPLACE   | REPLACE(input, search_str, replace_str)          | Replaces a word              | SELECT REPLACE('greens tech','tech','technologys') FROM dual;        |
+| 6. TRANSLATE | TRANSLATE(input, from_chars, to_chars)           | Replaces multiple characters | SELECT TRANSLATE('zoho','zh','lg') FROM dual;                        |
+| 7. TRIM      | TRIM(trim_char FROM input)                       | Removes from both sides      | SELECT TRIM('!' FROM '!!greens!!') FROM dual;                        |
+| 8. LTRIM     | LTRIM(input, trim_chars)                         | Trims from left              | SELECT LTRIM('##greens##', '#') FROM dual;                           |
+| 9. RTRIM     | RTRIM(input, trim_chars)                         | Trims from right             | SELECT RTRIM('##greens##', '#') FROM dual;                           |
+| 10. LPAD     | LPAD(input, total_length, pad_char)              | Pads left side               | SELECT LPAD('greens',10,'!') FROM dual;                              |
+| 11. RPAD     | RPAD(input, total_length, pad_char)              | Pads right side              | SELECT RPAD('greens',10,'!') FROM dual;                              |
+
+
+12.NULL FUNCTIONS
+********************
+i). NVL()
+
+Purpose: Replaces NULL with a specified value.
+
+Example:
+
+SELECT first_name, NVL(commission_pct, 0) AS commission
+FROM employees;
+
+✅ If commission_pct is NULL, it shows 0 instead.
+
+ii). NVL2()
+Purpose: Returns one value if the first expression is not NULL, and another if it is NULL.
+
+Example:
+
+SELECT first_name, NVL2(commission_pct, 'Yes', 'No') AS has_commission
+FROM employees;
+
+✅ Returns "Yes" if commission_pct is NOT NULL, else "No".
+
+iii). NULLIF()
+Purpose: Compares two expressions. If they are equal, returns NULL; otherwise, returns the first expression.
+
+Example:
+
+SELECT employee_id, NULLIF(salary, 5000) AS adjusted_salary
+FROM employees;
+
+✅ If salary is 5000, returns NULL; otherwise, returns salary.
+
+iv). COALESCE()
+
+Purpose: Returns the first non-NULL value from a list of expressions.
+
+Example:
+
+SELECT first_name, COALESCE(commission_pct, bonus, 0) AS earnings
+FROM employees;
+
+✅ Checks each column in order and returns the first non-NULL.
+
+
+13) SET OPERATORS
+*******************
+Set operators are used to combine the results of two or more SELECT queries into a single result set. 
+
+Each SELECT must:
+
+->Have the same number of columns
+
+->Have matching data types
+
+->Have columns in the same Order
+
+
+i)UNION
+
+Combines results from two queries and removes duplicates.
+
+Example:
+SELECT department_id FROM employees
+UNION
+SELECT department_id FROM departments;
+
+✅ Returns unique department IDs from both tables.
+
+ii)UNION ALL
+
+Combines results from two queries and includes duplicates.
+
+Example:
+SELECT department_id FROM employees
+UNION ALL
+SELECT department_id FROM departments;
+
+✅ Faster than UNION but shows repeated values.
+
+iii)INTERSECT
+
+Returns only common rows from both queries.
+
+Example:
+SELECT department_id FROM employees
+INTERSECT
+SELECT department_id FROM departments;
+
+✅ Returns department IDs present in both tables.
+
+iv)MINUS
+
+Returns rows from the first query that are not in the second.
+
+Example:
+SELECT department_id FROM employees
+MINUS
+SELECT department_id FROM departments;
+
+✅ Shows department IDs in employees that dont exist in departments.
+
+14.DATE FUNCTION 
+******************
+
+i)SYSDATE - Current system date & time
+SELECT SYSDATE FROM dual; 
+
+ii)CURRENT_DATE - Current date in sessions time zone
+SELECT CURRENT_DATE FROM dual;
+
+iii)SYSTIMESTAMP - Current timestamp with fractional seconds
+SELECT SYSTIMESTAMP FROM dual;
+
+iv)ADD_MONTHS(date, n) - Add n months to date
+SELECT ADD_MONTHS(SYSDATE, 2) FROM dual;
+
+v)MONTHS_BETWEEN(d1, d2) - Months between two dates
+SELECT MONTHS_BETWEEN(DATE1, DATE2) FROM dual;
+
+vi)NEXT_DAY(date, 'DAY') - Next weekday after given date
+SELECT NEXT_DAY(SYSDATE, 'FRIDAY') FROM dual;
+
+vii)LAST_DAY(date) - Last day of month
+SELECT LAST_DAY(SYSDATE) FROM dual;
+
+
+YYYY	4-digit year	2025
+MM	2-digit month	06
+MON	3-letter month	JUN
+MONTH	Full month	JUNE
+DD	Day of month	12
+DY	3-letter week day	WED
+DAY	Full weekday	WEDNESDAY
+HH24	Hour (0–23)	13
+MI	Minutes	45
+SS	Seconds	30
+YY	Last 2 digits of the year. Interprets 50 as 2050, 99 as 2099.	
+RR	Smart 2-digit year handling. Interprets based on current year logic.
+
+
+|     Function            | Description                                | Example                                  |
+| ------------------------| ------------------------------------------ | -----------------------------------------|
+| SYSDATE                 | Current system date & time                 | SELECT SYSDATE FROM dual;                |
+| CURRENT_DATE            | Current date & time in sessions time zone  | SELECT CURRENT_DATE FROM dual;           |
+| SYSTIMESTAMP            | Current timestamp with fractional seconds  | SELECT SYSTIMESTAMP FROM dual;           |
+| ADD_MONTHS(date, n)     | Add n months to date                       | SELECT ADD_MONTHS(SYSDATE, 2) FROM dual; |
+| MONTHS_BETWEEN(d1, d2)  | # of months between two dates              | MONTHS_BETWEEN('10-JUN-25', '10-JAN-25') |
+| NEXT_DAY(date, 'DAY')   | Next occurrence of the given weekday       | NEXT_DAY(SYSDATE, 'FRIDAY')              |
+| LAST_DAY(date)          | Last day of the month                      | LAST_DAY(SYSDATE)                        |
+| TRUNC(date, 'fmt')      | Truncate to day/month/year                 | TRUNC(SYSDATE, 'MM')                     |
+| ROUND(date, 'fmt')      | Round date to nearest month/year           | ROUND(SYSDATE, 'YYYY')                   |
+| EXTRACT(part FROM date) | Extract year/month/day                     | EXTRACT(YEAR FROM SYSDATE)               |
+| TO_DATE(str, 'fmt')     | Convert string to DATE                     | TO_DATE('2025-06-11', 'YYYY-MM-DD')      |
+| TO_CHAR(date, 'fmt')    | Convert date to string                     | TO_CHAR(SYSDATE, 'YYYY-MM-DD')           |
+| SYSDATE ± n             | Add/Subtract days                          | SYSDATE + 7                              |
+| BETWEEN ... AND ...     | Filter between two dates                   | WHERE hire_date BETWEEN TO_DATE(...)     |
+
+
+15.CONVERSION FUNCTIONS
+************************
+conversion functions are used to convert one data type into another, such as converting a string to a date, a number to a string, or a string to a number. 
+These are essential in situations where data from different sources or formats must be processed together.
+
+i)TO_CHAR (Date/Number → String)
+•   Purpose:Converts a DATE, TIMESTAMP, or NUMBER to a formatted VARCHAR2 string.
+            Used for displaying dates/numbers in custom formats .
+•	Syntax: TO_CHAR(expr, [format_model], [nls_params])
+•	Example (Date): TO_CHAR(SYSDATE, 'DD-MON-YYYY') → '12-JUN-2025'
+•	Example (Number): TO_CHAR(12345.67, 'L999G999D99') → '₹12,345.67'
+
+ii)TO_DATE (String → Date)
+•   Purpose:Converts a string into a DATE datatype based on a specified format model.
+            Essential for parsing date input strings into Oracle’s internal date format.
+•	Syntax: TO_DATE(string, format_model)
+•	Example: TO_DATE('15-08-1947', 'DD-MM-YYYY') → 15-AUG-1947
+•	RR vs YY: TO_DATE('47','RR') → 1947; TO_DATE('47','YY') → 2047
+
+iii)TO_NUMBER (String → Number)
+•   Purpose:Converts a string to a NUMBER datatype using an optional number format model.
+            Helps convert textual numeric input into numbers for calculations or comparisons.
+•	Syntax: TO_NUMBER(string, format_model)
+•	Example: TO_NUMBER('12,345.67', '999G999D99') → 12345.67
+
+iv)CAST (General Conversion)
+•   Purpose:Performs explicit conversion of a value from one data type to another (e.g., string to DATE, string to NUMBER, etc.).
+            Unlike TO_CHAR/TO_DATE, it can also be used in SELECT, WHERE, ORDER BY, GROUP BY, etc., and is ANSI-compliant.
+•	Syntax: CAST(expression AS target_data_type)
+•	Example: CAST('2025-06-12' AS DATE)
+
+v) TO_TIMESTAMP (String to Timestamp Conversion)
+•   Purpose: Converts a string to a TIMESTAMP datatype, which includes date and time with fractional seconds.
+•	Syntax: TO_TIMESTAMP(string, format_model)
+•	Example: TO_TIMESTAMP('2025-06-12 14:30:45', 'YYYY-MM-DD HH24:MI:SS')
+
+
+Useful when you need precision to the second or beyond (e.g., logging, scheduling, etc.).
+
+| Function     | Description                           | Example Input                                                  | Example Output                 |
+| -------------| ------------------------------------- | -------------------------------------------------------------- | ---------------------------    |
+| TO_CHAR      | Converts date/number to a string      | TO_CHAR(SYSDATE, 'YYYY-MM-DD'), TO_CHAR(1234.56, '9,999.99')   | '2025-06-12' ,'1,234.56'       |
+| TO_DATE      | Converts string to a DATE             | TO_DATE('12-06-2025','DD-MM-YYYY')                             | 12-JUN-25 (as DATE)            |
+| TO_NUMBER    | Converts string to number             | TO_NUMBER('1234.56','9999.99')                                 | 1234.56                        |
+| CAST         | Converts between different data types | CAST('123' AS NUMBER), CAST(SYSDATE AS TIMESTAMP)              | 123, 12-JUN-25 11.33.01.000000 |
+| TO_TIMESTAMP | Converts string to TIMESTAMP          | TO_TIMESTAMP('2025-06-12 15:30:45', 'YYYY-MM-DD HH24:MI:SS')   | 12-JUN-25 15.30.45.000000      |
+
+16.PIVOT/UNPIVOT
+i)PIVOT
+PIVOT transforms rows into columns. It used to summarize and rearrange data by turning distinct values from one column into multiple columns.
+
+SYNTAX;
+SELECT * FROM
+(
+   SELECT column1, column2, value_column
+   FROM table_name
+)
+PIVOT (
+   AGG_FUNCTION(value_column)
+   FOR column_to_pivot
+   IN (value1 AS alias1, value2 AS alias2, ...)
+);
+
+
+ii)UNPIVOT
+UNPIVOT transforms columns into rows. It used to normalize denormalized data, converting multiple columns into a single column.
+
+SYNTAX;
+
+SELECT column1, column2, ...
+FROM table_name
+UNPIVOT (
+   value_column FOR column_name IN (col1 AS 'val1', col2 AS 'val2', ...)
+);
+
+DIFF:
+
+| Operation | Purpose                            | Converts                        |
+| --------- | ---------------------------------  | --------------------------------|
+| PIVOT     | Rows ➝ Columns (with aggregation) | MONTH values → Columns          |
+| UNPIVOT   | Columns ➝ Rows                    | JAN/FEB/MAR columns → Row values|
+
+
+17.CTE
+*******
+
+CTE (Common Table Expression) is a temporary result set that you can reference within a SELECT, INSERT, UPDATE, or DELETE statement.
+Its defined using the WITH clause and is mainly used to simplify complex queries, especially those involving subqueries or recursion.
+
+Example : WITH high_paid AS (
+    SELECT * FROM EMPLOYEES
+    WHERE SALARY > 30000
+)
+SELECT DEPARTMENT, AVG(SALARY) AS avg_salary
+FROM high_paid
+GROUP BY DEPARTMENT;
